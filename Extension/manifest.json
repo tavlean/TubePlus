@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "TubePlus - YouTube Mix & Playlist URL Cleaner",
-    "version": "1.4",
+    "version": "1.4.1",
     "description": "Automatically removes playlist parameters from YouTube URLs and reloads the page",
     "permissions": ["tabs"],
     "host_permissions": ["*://*.youtube.com/*"],
