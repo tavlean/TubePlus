@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TubePlus</title>
+    <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+    <main class="app">
+        <section class="card">
+            <div class="card-header">
+                <h1>TubePlus</h1>
+                <label class="switch" title="Enable or disable TubePlus cleaning">
+                    <input id="toggle-enabled" type="checkbox" />
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <p class="status-line">Session clean count: <strong id="session-count">0</strong></p>
+            <p class="status-line">Current video ID: <code id="current-video-id">-</code></p>
+            <p id="shorts-indicator" class="indicator" hidden>Shorts redirected to full player recently</p>
+            <button id="copy-clean-url" class="primary">Copy clean URL</button>
+        </section>
+
+        <section class="card">
+            <h2>Playlist Allowlist</h2>
+            <p class="status-line" id="current-playlist">No playlist detected on this page.</p>
+            <button id="allow-playlist-btn" class="secondary" disabled>Allow this playlist</button>
+            <ul id="allowlist-list" class="list"></ul>
+        </section>
+
+        <section class="card">
+            <h2>Parameter Stripping</h2>
+            <div id="strip-params-list" class="checkbox-list"></div>
+        </section>
+
+        <section class="card">
+            <h2>Behavior</h2>
+            <div class="checkbox-list">
+                <label class="checkbox-item"><input id="toggle-youtube" type="checkbox" /> YouTube</label>
+                <label class="checkbox-item"><input id="toggle-youtube-music" type="checkbox" /> YouTube Music</label>
+                <label class="checkbox-item"><input id="toggle-shorts-to-watch" type="checkbox" /> Shorts to full player</label>
+                <label class="checkbox-item"><input id="toggle-preserve-playback" type="checkbox" /> Preserve playback position</label>
+                <label class="checkbox-item"><input id="toggle-auto-share-clean" type="checkbox" /> Auto-clean share URLs</label>
+            </div>
+        </section>
+
+        <section class="card">
+            <div class="card-header">
+                <h2>History</h2>
+                <button id="clear-history-btn" class="text-button">Clear</button>
+            </div>
+            <ul id="history-list" class="history-list"></ul>
+        </section>
+    </main>
+
+    <div id="notice" hidden></div>
+
+    <script src="popup.js"></script>
+</body>
+</html>

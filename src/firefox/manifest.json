@@ -1,9 +1,9 @@
 {
     "manifest_version": 3,
-    "name": "TubePlus - YouTube Mix & Playlist URL Cleaner",
-    "version": "1.4.1",
-    "description": "Automatically removes playlist parameters from YouTube URLs and reloads the page",
-    "permissions": ["tabs"],
+    "name": "TubePlus - YouTube URL Cleaner",
+    "version": "1.5.0",
+    "description": "Clean YouTube and YouTube Music URLs by stripping tracking parameters without page reloads.",
+    "permissions": ["tabs", "storage", "contextMenus"],
     "host_permissions": ["*://*.youtube.com/*"],
     "background": {
         "scripts": ["background.js"]
@@ -22,11 +22,22 @@
         "128": "assets/icon-128.png"
     },
     "action": {
+        "default_title": "TubePlus",
+        "default_popup": "popup.html",
         "default_icon": {
             "16": "assets/icon-16.png",
             "32": "assets/icon-32.png",
             "48": "assets/icon-48.png",
             "128": "assets/icon-128.png"
+        }
+    },
+    "commands": {
+        "copy-clean-url": {
+            "suggested_key": {
+                "default": "Ctrl+Shift+Y",
+                "mac": "Command+Shift+Y"
+            },
+            "description": "Copy clean YouTube URL"
         }
     },
     "browser_specific_settings": {
