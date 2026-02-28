@@ -2,6 +2,8 @@
     "use strict";
 
     const SHORTS_INDICATOR_WINDOW_MS = 180000;
+    const SWIPE_REVEAL_THRESHOLD_PX = 32;
+    const SWIPE_HIDE_THRESHOLD_PX = 18;
 
     const PARAM_OPTIONS = [
         { key: "list", label: "Strip list" },
@@ -43,6 +45,8 @@
         clearHistoryButton: document.getElementById("clear-history-btn"),
         notice: document.getElementById("notice")
     };
+
+    let swipeGesture = null;
 
     function runtimeMessage(message) {
         return new Promise((resolve) => {
@@ -136,6 +140,23 @@
         return `${value.slice(0, maxLength - 1)}…`;
     }
 
+    function collapseAllowlistItems(exceptItem = null) {
+        refs.allowlistList.querySelectorAll(".list-item.revealed").forEach((item) => {
+            if (exceptItem && item === exceptItem) {
+                return;
+            }
+            item.classList.remove("revealed");
+        });
+    }
+
+    function getAllowlistItemFromTarget(target) {
+        if (!(target instanceof HTMLElement)) {
+            return null;
+        }
+
+        return target.closest(".list-item[data-playlist-id]");
+    }
+
     async function refreshState() {
         const popupResponse = await runtimeMessage({
             type: "tubeplus_get_popup_state",
@@ -179,6 +200,7 @@
         state.allowlist.forEach((entry) => {
             const item = document.createElement("li");
             item.className = "list-item";
+            item.dataset.playlistId = entry.id;
 
             const text = document.createElement("div");
             text.className = "list-text";
@@ -381,19 +403,72 @@
             await refreshState();
         });
 
-        refs.allowlistList.addEventListener("click", async (event) => {
-            const target = event.target;
-            if (!(target instanceof HTMLElement) || !target.dataset.playlistId) {
+        refs.allowlistList.addEventListener("pointerdown", (event) => {
+            const item = getAllowlistItemFromTarget(event.target);
+            if (!item || (event.target instanceof HTMLElement && event.target.closest("button"))) {
                 return;
             }
 
-            await runtimeMessage({
-                type: "tubeplus_remove_allowlist",
-                playlistId: target.dataset.playlistId
-            });
+            swipeGesture = {
+                item,
+                pointerId: event.pointerId,
+                startX: event.clientX
+            };
+        });
 
-            showNotice("Playlist removed");
-            await refreshState();
+        refs.allowlistList.addEventListener("pointerup", (event) => {
+            if (!swipeGesture || swipeGesture.pointerId !== event.pointerId) {
+                return;
+            }
+
+            const deltaX = event.clientX - swipeGesture.startX;
+            if (deltaX <= -SWIPE_REVEAL_THRESHOLD_PX) {
+                collapseAllowlistItems(swipeGesture.item);
+                swipeGesture.item.classList.add("revealed");
+            } else if (deltaX >= SWIPE_HIDE_THRESHOLD_PX) {
+                swipeGesture.item.classList.remove("revealed");
+            }
+
+            swipeGesture = null;
+        });
+
+        refs.allowlistList.addEventListener("pointercancel", () => {
+            swipeGesture = null;
+        });
+
+        refs.allowlistList.addEventListener("click", async (event) => {
+            const target = event.target;
+            if (!(target instanceof HTMLElement)) {
+                return;
+            }
+
+            const removeButton = target.closest("button[data-playlist-id]");
+            if (removeButton && removeButton.dataset.playlistId) {
+                await runtimeMessage({
+                    type: "tubeplus_remove_allowlist",
+                    playlistId: removeButton.dataset.playlistId
+                });
+
+                showNotice("Playlist removed");
+                await refreshState();
+                return;
+            }
+
+            const item = getAllowlistItemFromTarget(target);
+            if (item && item.classList.contains("revealed")) {
+                item.classList.remove("revealed");
+            }
+        });
+
+        document.addEventListener("click", (event) => {
+            const target = event.target;
+            if (!(target instanceof HTMLElement)) {
+                return;
+            }
+
+            if (!refs.allowlistList.contains(target)) {
+                collapseAllowlistItems();
+            }
         });
 
         refs.historyList.addEventListener("click", async (event) => {

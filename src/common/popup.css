@@ -126,6 +126,20 @@ button.danger {
     padding: 6px 9px;
 }
 
+.list-item button.danger {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(8px);
+    transition: opacity 120ms ease, transform 120ms ease;
+}
+
+.list-item.revealed button.danger,
+.list-item:hover button.danger {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(0);
+}
+
 .checkbox-list {
     display: grid;
     gap: 7px;
@@ -166,6 +180,12 @@ button.danger {
     gap: 8px;
     justify-content: space-between;
     padding: 7px;
+}
+
+.list-item {
+    overflow: hidden;
+    position: relative;
+    touch-action: pan-y;
 }
 
 .list-text {
