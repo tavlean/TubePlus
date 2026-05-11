@@ -3,6 +3,7 @@
     "name": "TubePlus - YouTube Mix & Playlist URL Cleaner",
     "version": "1.4.1",
     "description": "Automatically removes playlist parameters from YouTube URLs and reloads the page",
+    "permissions": ["storage"],
     "content_scripts": [
         {
             "matches": ["*://*.youtube.com/*"],
@@ -17,6 +18,8 @@
         "128": "assets/icon-128.png"
     },
     "action": {
+        "default_popup": "popup.html",
+        "default_title": "TubePlus",
         "default_icon": {
             "16": "assets/icon-16.png",
             "32": "assets/icon-32.png",
