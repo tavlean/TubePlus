@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>TubePlus</title>
+        <link rel="stylesheet" href="popup.css">
+    </head>
+    <body>
+        <main class="popup">
+            <header class="header">
+                <img class="logo" src="assets/icon-32.png" alt="">
+                <div>
+                    <h1>TubePlus</h1>
+                    <p id="statusText">Loading</p>
+                </div>
+            </header>
+
+            <label class="toggle-row">
+                <span>Clean YouTube URLs</span>
+                <input id="enabledToggle" type="checkbox" role="switch">
+            </label>
+
+            <fieldset class="mode-group">
+                <legend>Cleanup mode</legend>
+                <label>
+                    <input type="radio" name="mode" value="all">
+                    <span>All playlists</span>
+                </label>
+                <label>
+                    <input type="radio" name="mode" value="mixes">
+                    <span>Mixes and radio only</span>
+                </label>
+            </fieldset>
+        </main>
+
+        <script src="popup.js"></script>
+    </body>
+</html>

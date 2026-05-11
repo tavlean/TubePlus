@@ -19,6 +19,20 @@ test("removes playlist context while preserving useful watch params", () => {
     assert.equal(result.url, "https://www.youtube.com/watch?v=abc123&t=83s&feature=share");
 });
 
+test("can limit cleaning to YouTube mixes and radio playlists", () => {
+    const playlist = cleanYouTubeWatchURL("https://www.youtube.com/watch?v=abc123&list=PL123", {
+        mode: "mixes"
+    });
+    const mix = cleanYouTubeWatchURL("https://www.youtube.com/watch?v=abc123&list=RDabc123", {
+        mode: "mixes"
+    });
+
+    assert.equal(playlist.changed, false);
+    assert.equal(playlist.url, "https://www.youtube.com/watch?v=abc123&list=PL123");
+    assert.equal(mix.changed, true);
+    assert.equal(mix.url, "https://www.youtube.com/watch?v=abc123");
+});
+
 test("removes radio and share noise params", () => {
     const result = cleanYouTubeWatchURL(
         "https://www.youtube.com/watch?v=abc123&start_radio=1&pp=ygUEMWFiYw%3D%3D"
