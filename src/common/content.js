@@ -10,25 +10,23 @@ function cleanCurrentURL() {
 }
 
 function handleURLChange() {
-    return cleanCurrentURL();
+    const cleaned = cleanCurrentURL();
+    lastURL = window.location.href;
+    return cleaned;
 }
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.action === "checkAndClean") {
-        const cleaned = handleURLChange();
-        sendResponse({ cleaned });
+let lastURL = window.location.href;
+
+function handlePossibleURLChange() {
+    const currentURL = window.location.href;
+
+    if (currentURL !== lastURL) {
+        handleURLChange();
     }
-});
+}
 
 handleURLChange();
 
-document.addEventListener("yt-navigate-finish", handleURLChange);
-
-let lastURL = window.location.href;
-new MutationObserver(() => {
-    const currentURL = window.location.href;
-    if (currentURL !== lastURL) {
-        lastURL = currentURL;
-        handleURLChange();
-    }
-}).observe(document, { subtree: true, childList: true });
+document.addEventListener("yt-navigate-finish", handlePossibleURLChange);
+window.addEventListener("popstate", handlePossibleURLChange);
+window.addEventListener("pageshow", handlePossibleURLChange);
