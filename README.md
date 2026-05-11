@@ -1,11 +1,12 @@
 # TubePlus
 
-A cross-browser extension that cleans YouTube watch URLs by removing playlist/mix parameters when opening a specific video. Supports Chrome and Firefox from a shared codebase.
+A cross-browser extension that cleans YouTube watch URLs by removing playlist/mix context while keeping useful video parameters like timestamps. Supports Chrome and Firefox from a shared codebase.
 
 ## Features
 
-- Automatically removes `list` parameter from `youtube.com/watch` URLs
-- Keeps users on the direct video URL (`?v=...`) instead of mix/playlist context
+- Automatically removes playlist context from `youtube.com/watch` URLs
+- Keeps useful direct-video parameters such as `t` and `feature`
+- Lets users pause cleaning or limit cleaning to YouTube Mix/radio URLs
 - Handles YouTube SPA navigation and dynamic URL changes
 - Lightweight MV3 architecture with shared code for both browsers
 
@@ -69,12 +70,14 @@ TubePlus/
 ├── package.json
 ├── .gitignore
 ├── docs/
-├── assets/              # Store/marketing assets
+├── store-assets/        # Store/marketing assets
 ├── shared-assets/       # Shared extension icons/assets (source)
+├── scripts/             # Build/package helpers
 ├── src/
 │   ├── common/          # Shared extension runtime files
-│   │   ├── background.js
-│   │   └── content.js
+│   │   ├── content.js
+│   │   ├── popup.*
+│   │   └── url-cleaner.js
 │   ├── chrome/          # Chrome shell
 │   │   └── manifest.json
 │   └── firefox/         # Firefox shell
