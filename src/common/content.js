@@ -1,40 +1,29 @@
-// Function to clean and reload the URL
-function cleanAndReloadURL() {
-    const url = new URL(window.location.href);
-    const v = url.searchParams.get("v");
-    if (v && url.searchParams.has("list")) {
-        const cleanURL = `https://www.youtube.com/watch?v=${v}`;
-        if (window.location.href !== cleanURL) {
-            window.location.href = cleanURL;
-            return true; // URL was cleaned
-        }
-    }
-    return false; // URL was already clean
-}
+function cleanCurrentURL() {
+    const result = TubePlusUrlCleaner.cleanYouTubeWatchURL(window.location.href);
 
-// Function to handle URL changes
-function handleURLChange() {
-    if (window.location.href.includes("youtube.com/watch")) {
-        return cleanAndReloadURL();
+    if (result.changed && window.location.href !== result.url) {
+        window.history.replaceState(window.history.state, "", result.url);
+        return true;
     }
+
     return false;
 }
 
-// Listen for messages from the background script
+function handleURLChange() {
+    return cleanCurrentURL();
+}
+
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === "checkAndClean") {
         const cleaned = handleURLChange();
-        sendResponse({ cleaned: cleaned });
+        sendResponse({ cleaned });
     }
 });
 
-// Run on initial page load
 handleURLChange();
 
-// Listen for YouTube's navigation events
 document.addEventListener("yt-navigate-finish", handleURLChange);
 
-// Fallback for direct URL changes
 let lastURL = window.location.href;
 new MutationObserver(() => {
     const currentURL = window.location.href;
@@ -43,5 +32,3 @@ new MutationObserver(() => {
         handleURLChange();
     }
 }).observe(document, { subtree: true, childList: true });
-
-console.log("YouTube URL Cleaner content script loaded");
