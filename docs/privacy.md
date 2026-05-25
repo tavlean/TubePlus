@@ -1,13 +1,26 @@
 # Privacy Policy
 
-**TubePlus does not collect any data.**
+TubePlus runs locally in your browser. It does not collect, store, or transmit personal data.
 
-This extension:
+### What TubePlus does
 
--   Never tracks your browsing
--   Never collects or sends data anywhere
--   Operates locally on your browser
--   Modifies YouTube URLs locally
--   Stores only your local TubePlus preferences, such as whether cleaning is enabled
--   Uses no third-party services, analytics, or tracking tools
--   Is completely open source
+- Detects when you are on YouTube watch pages.
+- Removes playlist and mix context from YouTube URLs based on your selected cleanup mode.
+- Stores your TubePlus preferences in your browser's extension storage.
+
+### Data TubePlus does not collect
+
+- No personally identifiable information.
+- No browsing history.
+- No analytics.
+- No tracking.
+
+TubePlus does not contact any external server. Your settings stay in your browser's extension storage and are never sent anywhere.
+
+### Permissions
+
+TubePlus requests only the permissions it needs to run on YouTube and save your local preferences. Permissions are used solely for that purpose.
+
+### Changes
+
+If this policy changes in a meaningful way, the changes will be reflected here on this page.
