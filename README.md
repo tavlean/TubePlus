@@ -2,12 +2,15 @@
 
 A cross-browser extension that cleans YouTube watch URLs by removing playlist/mix context while keeping useful video parameters like timestamps. Supports Chrome and Firefox from a shared codebase.
 
+For how it works and the reasoning behind the key decisions, see [docs/architecture.md](docs/architecture.md).
+
 ## Features
 
-- Automatically removes playlist context from `youtube.com/watch` URLs
-- Keeps useful direct-video parameters such as `t` and `feature`
-- Lets users pause cleaning or limit cleaning to YouTube Mix/radio URLs
-- Handles YouTube SPA navigation and dynamic URL changes
+- Removes Mix/playlist context from `youtube.com/watch` **before the page loads**, so the Mix never starts — no reload, no flash (Chrome, via declarativeNetRequest)
+- Independent controls to clean Mixes & radio, Playlists, or turn cleaning off entirely
+- Keeps useful video parameters such as the `t` timestamp
+- Back button returns to the previous page, never the playlist
+- Falls back to a content script for in-app (SPA) Mix clicks and for browsers without DNR
 - Lightweight MV3 architecture with shared code for both browsers
 
 ## Installation
@@ -69,18 +72,20 @@ TubePlus/
 ├── LICENSE
 ├── package.json
 ├── .gitignore
-├── docs/
+├── docs/                # Context: architecture.md (design + decisions), changelog.md, privacy.md
 ├── store-assets/        # Store/marketing assets
 ├── shared-assets/       # Shared extension icons/assets (source)
 ├── scripts/             # Build/package helpers
 ├── src/
 │   ├── common/          # Shared extension runtime files
-│   │   ├── content.js
-│   │   ├── popup.*
-│   │   └── url-cleaner.js
-│   ├── chrome/          # Chrome shell
+│   │   ├── url-cleaner.js   # settings model + cleaning decision (unit-tested)
+│   │   ├── rules.js         # builds declarativeNetRequest rules from settings
+│   │   ├── background.js    # Chrome service worker: applies DNR rules
+│   │   ├── content.js       # fallback for in-app SPA navigations / non-DNR browsers
+│   │   └── popup.*          # popup UI
+│   ├── chrome/          # Chrome shell (manifest with DNR + service worker)
 │   │   └── manifest.json
-│   └── firefox/         # Firefox shell
+│   └── firefox/         # Firefox shell (content-script path, no DNR)
 │       └── manifest.json
 └── dist/                # Generated dev/build artifacts
 ```
