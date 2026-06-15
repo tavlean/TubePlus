@@ -210,15 +210,6 @@ body.is-paused .status-dot {
     transition: opacity 0.2s ease;
 }
 
-legend {
-    padding: 0 4px;
-    color: var(--muted);
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-}
-
 /* Paused state dims the per-type controls */
 body.is-paused .sub-group {
     opacity: 0.45;
