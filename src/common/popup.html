@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>TubePlus</title>
+        <link rel="stylesheet" href="popup.css">
+    </head>
+    <body>
+        <main class="popup">
+            <header class="header">
+                <img class="logo" src="assets/icon-48.png" alt="">
+                <div class="header-text">
+                    <h1>TubePlus</h1>
+                    <p class="status" id="status">
+                        <span class="status-dot"></span>
+                        <span id="statusText">Loading</span>
+                    </p>
+                </div>
+            </header>
+
+            <div class="card">
+                <label class="switch-row">
+                    <span class="switch-copy">
+                        <span class="switch-title">Clean YouTube URLs</span>
+                        <span class="switch-sub">Strip mix &amp; playlist tracking</span>
+                    </span>
+                    <span class="switch">
+                        <input id="enabledToggle" type="checkbox" role="switch">
+                        <span class="switch-track" aria-hidden="true"></span>
+                    </span>
+                </label>
+
+                <fieldset class="sub-group" id="cleanOptions">
+                    <label class="switch-row compact">
+                        <span class="switch-title">Mixes &amp; radio</span>
+                        <span class="switch">
+                            <input id="cleanMixesToggle" type="checkbox" role="switch">
+                            <span class="switch-track" aria-hidden="true"></span>
+                        </span>
+                    </label>
+                    <label class="switch-row compact">
+                        <span class="switch-title">Playlists</span>
+                        <span class="switch">
+                            <input id="cleanPlaylistsToggle" type="checkbox" role="switch">
+                            <span class="switch-track" aria-hidden="true"></span>
+                        </span>
+                    </label>
+                </fieldset>
+            </div>
+        </main>
+
+        <script src="url-cleaner.js"></script>
+        <script src="popup.js"></script>
+    </body>
+</html>

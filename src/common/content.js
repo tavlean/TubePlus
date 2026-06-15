@@ -1,47 +1,55 @@
-// Function to clean and reload the URL
-function cleanAndReloadURL() {
-    const url = new URL(window.location.href);
-    const v = url.searchParams.get("v");
-    if (v && url.searchParams.has("list")) {
-        const cleanURL = `https://www.youtube.com/watch?v=${v}`;
-        if (window.location.href !== cleanURL) {
-            window.location.href = cleanURL;
-            return true; // URL was cleaned
-        }
-    }
-    return false; // URL was already clean
-}
+// On Chrome the declarativeNetRequest rule strips playlist context before the page
+// loads, so this script is usually a no-op there. It exists to cover in-app SPA
+// navigations (clicking a Mix while already on YouTube) and browsers without DNR.
 
-// Function to handle URL changes
-function handleURLChange() {
-    if (window.location.href.includes("youtube.com/watch")) {
-        return cleanAndReloadURL();
+const { DEFAULT_SETTINGS, normalizeSettings, cleanYouTubeWatchURL } = window.TubePlusUrlCleaner;
+
+let settings = Object.assign({}, DEFAULT_SETTINGS);
+let settingsLoaded = false;
+
+function cleanCurrentURL() {
+    const result = cleanYouTubeWatchURL(window.location.href, settings);
+
+    if (result.changed && window.location.href !== result.url) {
+        // replace(), not assign(), so the dirty URL never enters history.
+        window.location.replace(result.url);
+        return true;
     }
+
     return false;
 }
 
-// Listen for messages from the background script
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.action === "checkAndClean") {
-        const cleaned = handleURLChange();
-        sendResponse({ cleaned: cleaned });
+function maybeClean() {
+    if (settingsLoaded) {
+        cleanCurrentURL();
     }
+}
+
+function loadSettings() {
+    chrome.storage.local.get(DEFAULT_SETTINGS, (stored) => {
+        if (!chrome.runtime.lastError) {
+            settings = normalizeSettings(stored);
+        }
+        settingsLoaded = true;
+        cleanCurrentURL();
+    });
+}
+
+document.addEventListener("yt-navigate-finish", maybeClean);
+window.addEventListener("popstate", maybeClean);
+
+chrome.storage.onChanged.addListener((changes, areaName) => {
+    if (areaName !== "local") {
+        return;
+    }
+
+    const merged = Object.assign({}, settings);
+    for (const key of Object.keys(changes)) {
+        merged[key] = changes[key].newValue;
+    }
+    settings = normalizeSettings(merged);
+
+    maybeClean();
 });
 
-// Run on initial page load
-handleURLChange();
-
-// Listen for YouTube's navigation events
-document.addEventListener("yt-navigate-finish", handleURLChange);
-
-// Fallback for direct URL changes
-let lastURL = window.location.href;
-new MutationObserver(() => {
-    const currentURL = window.location.href;
-    if (currentURL !== lastURL) {
-        lastURL = currentURL;
-        handleURLChange();
-    }
-}).observe(document, { subtree: true, childList: true });
-
-console.log("YouTube URL Cleaner content script loaded");
+loadSettings();

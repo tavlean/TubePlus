@@ -1,16 +1,17 @@
 {
     "name": "tubeplus",
-    "version": "1.4.1",
+    "version": "1.5.0",
     "description": "Browser extension that cleans YouTube Mix and playlist watch URLs",
     "private": true,
     "scripts": {
-        "clean": "rm -rf dist",
-        "dev": "npm run dev:chrome && npm run dev:firefox",
-        "dev:chrome": "rm -rf dist/chrome-dev && mkdir -p dist/chrome-dev/assets && cp -r shared-assets/* dist/chrome-dev/assets/ && cp -r src/common/* dist/chrome-dev/ && cp src/chrome/manifest.json dist/chrome-dev/",
-        "dev:firefox": "rm -rf dist/firefox-dev && mkdir -p dist/firefox-dev/assets && cp -r shared-assets/* dist/firefox-dev/assets/ && cp -r src/common/* dist/firefox-dev/ && cp src/firefox/manifest.json dist/firefox-dev/",
-        "build": "npm run build:chrome && npm run build:firefox",
-        "build:chrome": "rm -rf dist/chrome-build && mkdir -p dist/chrome-build/assets && cp -r shared-assets/* dist/chrome-build/assets/ && cp -r src/common/* dist/chrome-build/ && cp src/chrome/manifest.json dist/chrome-build/ && cd dist/chrome-build && zip -r ../tubeplus-chrome.zip *",
-        "build:firefox": "rm -rf dist/firefox-build && mkdir -p dist/firefox-build/assets && cp -r shared-assets/* dist/firefox-build/assets/ && cp -r src/common/* dist/firefox-build/ && cp src/firefox/manifest.json dist/firefox-build/ && cd dist/firefox-build && zip -r ../tubeplus-firefox.zip *"
+        "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
+        "dev": "node scripts/build.js dev",
+        "dev:chrome": "node scripts/build.js dev chrome",
+        "dev:firefox": "node scripts/build.js dev firefox",
+        "build": "node scripts/build.js build",
+        "build:chrome": "node scripts/build.js build chrome",
+        "build:firefox": "node scripts/build.js build firefox",
+        "test": "node --test"
     },
     "keywords": [
         "chrome-extension",
