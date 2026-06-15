@@ -1,9 +1,35 @@
 (function (global) {
-    const PLAYLIST_PARAMS = new Set(["list", "index", "pp", "start_radio"]);
+    const PLAYLIST_PARAMS = ["list", "index", "pp", "start_radio"];
     const PRESERVED_EMPTY_PARAMS = new Set(["autoplay", "mute"]);
-    const DEFAULT_OPTIONS = {
-        mode: "all"
+
+    const DEFAULT_SETTINGS = {
+        enabled: true,
+        cleanMixes: true,
+        cleanPlaylists: true
     };
+
+    // A "Mix"/radio playlist id starts with RD (mixes, radios) or UL (auto lists).
+    function isMixOrRadioList(listId) {
+        return /^(RD|UL)/.test(listId);
+    }
+
+    // Accepts current/legacy stored shapes and returns a normalized settings object.
+    // Legacy (branch) shape used { enabled, mode: "all" | "mixes" }.
+    function normalizeSettings(stored) {
+        const source = stored || {};
+        const settings = {
+            enabled: source.enabled !== false,
+            cleanMixes: source.cleanMixes !== false,
+            cleanPlaylists: source.cleanPlaylists !== false
+        };
+
+        if (source.cleanMixes === undefined && source.cleanPlaylists === undefined && source.mode) {
+            settings.cleanMixes = true;
+            settings.cleanPlaylists = source.mode !== "mixes";
+        }
+
+        return settings;
+    }
 
     function isYouTubeWatchURL(url) {
         return (
@@ -13,44 +39,31 @@
         );
     }
 
-    function isMixOrRadioList(listId) {
-        return listId.startsWith("RD") || listId.startsWith("UL");
-    }
-
-    function shouldCleanPlaylistContext(url, options) {
-        const listId = url.searchParams.get("list");
-
-        if (url.searchParams.has("start_radio")) {
-            return true;
-        }
-
-        if (!listId) {
+    function shouldCleanPlaylistContext(url, settings) {
+        if (!settings.enabled) {
             return false;
         }
 
-        if (options.mode === "mixes") {
-            return isMixOrRadioList(listId);
+        const listId = url.searchParams.get("list");
+
+        if (!listId) {
+            // A radio can be requested via start_radio without a list id yet.
+            return url.searchParams.has("start_radio") && settings.cleanMixes;
         }
 
-        return true;
+        return isMixOrRadioList(listId) ? settings.cleanMixes : settings.cleanPlaylists;
     }
 
-    function cleanYouTubeWatchURL(input, requestedOptions) {
-        const options = Object.assign({}, DEFAULT_OPTIONS, requestedOptions);
+    function cleanYouTubeWatchURL(input, requestedSettings) {
+        const settings = normalizeSettings(requestedSettings);
         const url = new URL(input);
 
         if (!isYouTubeWatchURL(url) || !url.searchParams.get("v")) {
-            return {
-                changed: false,
-                url: url.toString()
-            };
+            return { changed: false, url: url.toString() };
         }
 
-        if (!shouldCleanPlaylistContext(url, options)) {
-            return {
-                changed: false,
-                url: url.toString()
-            };
+        if (!shouldCleanPlaylistContext(url, settings)) {
+            return { changed: false, url: url.toString() };
         }
 
         let changed = false;
@@ -71,17 +84,17 @@
 
         url.hash = "";
 
-        return {
-            changed,
-            url: url.toString()
-        };
+        return { changed, url: url.toString() };
     }
 
     const api = {
+        DEFAULT_SETTINGS,
+        PLAYLIST_PARAMS,
         cleanYouTubeWatchURL,
-        DEFAULT_OPTIONS,
         isMixOrRadioList,
-        isYouTubeWatchURL
+        isYouTubeWatchURL,
+        normalizeSettings,
+        shouldCleanPlaylistContext
     };
 
     if (typeof module !== "undefined" && module.exports) {
