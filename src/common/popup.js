@@ -1,56 +1,55 @@
-const DEFAULT_SETTINGS = {
-    enabled: true,
-    mode: "all"
-};
+const { DEFAULT_SETTINGS, normalizeSettings } = window.TubePlusUrlCleaner;
 
 const enabledToggle = document.getElementById("enabledToggle");
+const cleanMixesToggle = document.getElementById("cleanMixesToggle");
+const cleanPlaylistsToggle = document.getElementById("cleanPlaylistsToggle");
 const statusText = document.getElementById("statusText");
-const modeInputs = Array.from(document.querySelectorAll('input[name="mode"]'));
 
-function setStatus(settings) {
-    if (!settings.enabled) {
-        statusText.textContent = "Paused";
-        return;
+let settings = Object.assign({}, DEFAULT_SETTINGS);
+
+function statusFor(s) {
+    if (!s.enabled) {
+        return "Paused";
     }
 
-    statusText.textContent = settings.mode === "mixes" ? "Cleaning mixes and radio" : "Cleaning playlist URLs";
+    if (s.cleanMixes && s.cleanPlaylists) {
+        return "Cleaning mixes & playlists";
+    }
+
+    if (s.cleanMixes) {
+        return "Cleaning mixes & radio";
+    }
+
+    if (s.cleanPlaylists) {
+        return "Cleaning playlists";
+    }
+
+    return "Nothing selected";
 }
 
-function render(settings) {
+function render() {
     enabledToggle.checked = settings.enabled;
+    cleanMixesToggle.checked = settings.cleanMixes;
+    cleanPlaylistsToggle.checked = settings.cleanPlaylists;
 
-    for (const input of modeInputs) {
-        input.checked = input.value === settings.mode;
-        input.disabled = !settings.enabled;
-    }
+    cleanMixesToggle.disabled = !settings.enabled;
+    cleanPlaylistsToggle.disabled = !settings.enabled;
 
-    setStatus(settings);
+    document.body.classList.toggle("is-paused", !settings.enabled);
+    statusText.textContent = statusFor(settings);
 }
 
-function saveSettings(changes) {
-    chrome.storage.local.set(changes);
+function update(change) {
+    settings = Object.assign({}, settings, change);
+    chrome.storage.local.set(change);
+    render();
 }
 
-chrome.storage.local.get(DEFAULT_SETTINGS, (settings) => {
-    render(settings);
-
-    enabledToggle.addEventListener("change", () => {
-        const enabled = enabledToggle.checked;
-        saveSettings({ enabled });
-        render(Object.assign({}, settings, { enabled }));
-        settings.enabled = enabled;
-    });
-
-    for (const input of modeInputs) {
-        input.addEventListener("change", () => {
-            if (!input.checked) {
-                return;
-            }
-
-            const mode = input.value;
-            saveSettings({ mode });
-            render(Object.assign({}, settings, { mode }));
-            settings.mode = mode;
-        });
-    }
+chrome.storage.local.get(DEFAULT_SETTINGS, (stored) => {
+    settings = normalizeSettings(stored);
+    render();
 });
+
+enabledToggle.addEventListener("change", () => update({ enabled: enabledToggle.checked }));
+cleanMixesToggle.addEventListener("change", () => update({ cleanMixes: cleanMixesToggle.checked }));
+cleanPlaylistsToggle.addEventListener("change", () => update({ cleanPlaylists: cleanPlaylistsToggle.checked }));
