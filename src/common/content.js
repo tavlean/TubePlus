@@ -1,76 +1,55 @@
-const DEFAULT_SETTINGS = {
-    enabled: true,
-    mode: TubePlusUrlCleaner.DEFAULT_OPTIONS.mode
-};
+// On Chrome the declarativeNetRequest rule strips playlist context before the page
+// loads, so this script is usually a no-op there. It exists to cover in-app SPA
+// navigations (clicking a Mix while already on YouTube) and browsers without DNR.
+
+const { DEFAULT_SETTINGS, normalizeSettings, cleanYouTubeWatchURL } = window.TubePlusUrlCleaner;
 
 let settings = Object.assign({}, DEFAULT_SETTINGS);
 let settingsLoaded = false;
 
 function cleanCurrentURL() {
-    if (!settings.enabled) {
-        return false;
-    }
-
-    const result = TubePlusUrlCleaner.cleanYouTubeWatchURL(window.location.href, {
-        mode: settings.mode
-    });
+    const result = cleanYouTubeWatchURL(window.location.href, settings);
 
     if (result.changed && window.location.href !== result.url) {
-        window.history.replaceState(window.history.state, "", result.url);
+        // replace(), not assign(), so the dirty URL never enters history.
+        window.location.replace(result.url);
         return true;
     }
 
     return false;
 }
 
-function handleURLChange() {
-    const cleaned = cleanCurrentURL();
-    lastURL = window.location.href;
-    return cleaned;
-}
-
-let lastURL = window.location.href;
-
-function handlePossibleURLChange() {
-    const currentURL = window.location.href;
-
-    if (currentURL !== lastURL) {
-        handleURLChange();
+function maybeClean() {
+    if (settingsLoaded) {
+        cleanCurrentURL();
     }
 }
 
 function loadSettings() {
-    chrome.storage.local.get(DEFAULT_SETTINGS, (storedSettings) => {
-        if (chrome.runtime.lastError) {
-            settingsLoaded = true;
-            handleURLChange();
-            return;
+    chrome.storage.local.get(DEFAULT_SETTINGS, (stored) => {
+        if (!chrome.runtime.lastError) {
+            settings = normalizeSettings(stored);
         }
-
-        settings = Object.assign({}, DEFAULT_SETTINGS, storedSettings);
         settingsLoaded = true;
-        handleURLChange();
+        cleanCurrentURL();
     });
 }
 
-document.addEventListener("yt-navigate-finish", handlePossibleURLChange);
-window.addEventListener("popstate", handlePossibleURLChange);
-window.addEventListener("pageshow", handlePossibleURLChange);
+document.addEventListener("yt-navigate-finish", maybeClean);
+window.addEventListener("popstate", maybeClean);
 
 chrome.storage.onChanged.addListener((changes, areaName) => {
     if (areaName !== "local") {
         return;
     }
 
-    for (const key of Object.keys(DEFAULT_SETTINGS)) {
-        if (changes[key]) {
-            settings[key] = changes[key].newValue;
-        }
+    const merged = Object.assign({}, settings);
+    for (const key of Object.keys(changes)) {
+        merged[key] = changes[key].newValue;
     }
+    settings = normalizeSettings(merged);
 
-    if (settingsLoaded) {
-        handleURLChange();
-    }
+    maybeClean();
 });
 
 loadSettings();
