@@ -5,7 +5,7 @@ TubePlus runs locally in your browser. It does not collect, store, or transmit p
 ### What TubePlus does
 
 - Detects when you are on YouTube watch pages.
-- Removes playlist and mix context from YouTube URLs based on your selected cleanup mode.
+- Removes playlist and mix context from YouTube URLs based on the options you choose (Mixes & radio, Playlists, or off).
 - Stores your TubePlus preferences in your browser's extension storage.
 
 ### Data TubePlus does not collect
