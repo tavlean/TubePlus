@@ -3,7 +3,7 @@
     "name": "TubePlus - YouTube Mix & Playlist URL Cleaner",
     "version": "1.5.0",
     "description": "Automatically removes playlist context from YouTube watch URLs",
-    "permissions": ["storage", "tabs", "declarativeNetRequestWithHostAccess"],
+    "permissions": ["storage", "declarativeNetRequestWithHostAccess"],
     "host_permissions": ["*://*.youtube.com/*"],
     "background": {
         "service_worker": "background.js"
