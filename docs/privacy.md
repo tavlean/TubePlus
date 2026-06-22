@@ -19,7 +19,11 @@ TubePlus does not contact any external server. Your settings stay in your browse
 
 ### Permissions
 
-TubePlus requests only the permissions it needs to run on YouTube and save your local preferences. Permissions are used solely for that purpose.
+- **storage** — saves your TubePlus preferences locally.
+- **declarativeNetRequest (with access to youtube.com)** — strips playlist and mix parameters from YouTube watch URLs before the page loads. This happens entirely on your device; no request data is collected or sent.
+- **tabs** — reserved for upcoming tab-management features. Chrome shows this as "read your browsing history" because the permission can read tab titles and URLs, but TubePlus does not use it to access tab data today, and it never collects, stores, or transmits tab or browsing information.
+
+Every permission is used only on your device. Nothing is sent to any server.
 
 ### Changes
 
