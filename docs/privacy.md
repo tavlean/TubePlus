@@ -19,8 +19,8 @@ TubePlus does not contact any external server. Your settings stay in your browse
 
 ### Permissions
 
-- **storage** — saves your TubePlus preferences locally.
-- **declarativeNetRequest (with access to youtube.com)** — strips playlist and mix parameters from YouTube watch URLs before the page loads. This happens entirely on your device; no request data is collected or sent.
+- **storage**: saves your TubePlus preferences locally.
+- **declarativeNetRequest (with access to youtube.com)**: strips playlist and mix parameters from YouTube watch URLs before the page loads. This happens entirely on your device; no request data is collected or sent.
 
 Every permission is used only on your device. Nothing is sent to any server.
 
