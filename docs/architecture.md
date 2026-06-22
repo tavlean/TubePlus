@@ -46,14 +46,22 @@ Settings: `{ enabled, cleanMixes, cleanPlaylists }`. Mix = list id `RD…`/`UL�
 ## Permissions
 
 Adding a permission that triggers an install **warning** disables the extension
-for existing users until they re-enable. Rules:
+for existing users until they re-enable. So: never add a warning permission
+without a deliberate, communicated release, and **keep already-granted
+permissions rather than dropping and re-adding them** (the re-add is what
+disables everyone).
 
-- Never add a warning permission without a deliberate, communicated release.
-- `declarativeNetRequestWithHostAccess` (no warning) — not `declarativeNetRequest`
-  (warns). `storage` (no warning).
-- `tabs` removed (warns). Future tab needs → prefer `activeTab` or content-script
-  self-reporting first.
-- 1.5.0 net vs published: seamless update, fewer warnings.
+- `storage`, `declarativeNetRequestWithHostAccess` — no install warning.
+- `tabs` — **KEEP IT. Do not remove.** It warns ("read your browsing history"),
+  but the published version already grants it, so keeping it costs existing users
+  nothing. Planned features (rearranging/sorting the user's tabs, cross-tab
+  tooling) need it to read tab `url`/`title`/`favIconUrl` across sites. Dropping
+  it now and re-adding later would disable the extension for every user until they
+  re-enable — unacceptable. Note `tabs` gates only those sensitive Tab fields;
+  `tabs.move`/`create`/`remove`/`activate` and reading content of tabs we already
+  have host access to (e.g. YouTube) do not need it.
+- Net change published → 1.5.0: `+storage`, `+declarativeNetRequestWithHostAccess`
+  (both warning-free), `tabs` retained → seamless update, no re-enable.
 
 ## Cross-browser
 
@@ -63,5 +71,6 @@ the Firefox build but unused. Upgrade only after verifying live.
 
 ## Next feature
 
-Durations across tabs: content script reads each video's length, reports via
-`sender.tab` to the worker. Achievable without a warning permission — keep it so.
+Durations across tabs and tab rearrangement: the content script reads each
+video's length and reports via `sender.tab`; the retained `tabs` permission
+covers reading other tabs' `url`/`title` and cross-tab features.

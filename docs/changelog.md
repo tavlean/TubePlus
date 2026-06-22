@@ -6,7 +6,7 @@
 - Added a content-script fallback for in-app navigations (clicking a Mix while already on YouTube) and for browsers without declarativeNetRequest; it cleans via `location.replace`, so the Back button always returns to the previous page rather than the playlist.
 - Reworked the popup into a master switch plus independent "Mixes & radio" and "Playlists" toggles, so cleaning can be limited to either type or turned off entirely.
 - Useful watch parameters (such as the `t` timestamp) are preserved while playlist context is removed.
-- Permissions: added `storage` and `declarativeNetRequestWithHostAccess` (neither shows an install warning) and removed `tabs`, so existing users update without having to re-enable the extension.
+- Permissions: added `storage` and `declarativeNetRequestWithHostAccess` (neither shows an install warning); `tabs` is retained for planned cross-tab features, so existing users update without having to re-enable the extension.
 
 ## 1.4.1 - 2025-09-25
 
