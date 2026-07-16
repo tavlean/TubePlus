@@ -27,8 +27,19 @@ server never builds the queue.
   page. Scoped to `/watch`, so `/playlist` is untouched. `t` and other params
   preserved.
 - **Content script (fallback):** in-app SPA Mix clicks send no `main_frame`
-  request, so DNR misses them. `yt-navigate-finish` → `location.replace(clean)`
-  (one reload, Back-safe). Also the cleaning path on non-DNR browsers.
+  request, so DNR misses them. On URL change → `location.replace(clean)` (one
+  reload, Back-safe). Also the cleaning path on non-DNR browsers. Detection is
+  layered because no single signal covers both YouTube apps: `yt-navigate-finish`
+  (desktop only; m.youtube.com never fires it), `state-navigateend` on window
+  (mobile app), Navigation API `currententrychange` (Chrome 102+/Firefox 147+),
+  `popstate` (back/forward only; pushState never fires it), and a MutationObserver
+  URL check as the engine-agnostic fallback. 1.5.0 shipped with only
+  yt-navigate-finish + popstate, which broke all mobile in-app cleaning.
+- **Content-script scoping gotcha:** in Firefox content scripts `globalThis` is a
+  sandbox global distinct from `window` (in Chrome they are the same object). Any
+  API shared between content-script files must be written AND read through
+  `globalThis`; writing `globalThis.X` and reading `window.X` is undefined on
+  Firefox and killed the whole cleaner in 1.5.0.
 - **Service worker (`background.js`):** rebuilds DNR rules from settings on
   install/startup/storage-change.
 - **`url-cleaner.js`:** single source of truth for settings model + cleaning
@@ -69,7 +80,20 @@ permission casually.
 
 Firefox ships without DNR (its `queryTransform` support unverified) → uses the
 content-script path (correct, brief reload). `background.js`/`rules.js` copied to
-the Firefox build but unused. Upgrade only after verifying live.
+the Firefox build but unused. Upgrade only after verifying live — MDN documents
+DNR + `queryTransform.removeParams` since Firefox 113, so this is likely viable,
+but it would NOT bypass the host-permission gate below (redirects need the grant).
+
+**Firefox MV3 host permissions are user-granted, not automatic.** Content scripts
+only run on origins the user has granted. Fresh installs on Firefox 127+ grant the
+origins in the install prompt, but **updates never auto-grant newly requested
+origins** (Bugzilla 1893232) and users can revoke at any time — leaving the
+extension installed but silently blind to youtube.com. Mitigations (1.5.1): the
+origin is declared in both `host_permissions` and `optional_host_permissions`,
+and the popup checks `permissions.contains` and shows a "Grant access" card wired
+to `permissions.request` (requires a user gesture; Firefox 128+, hence
+`strict_min_version: 128.0`). On Chrome the grant is silent at install, so the
+card never appears.
 
 ## Next feature
 
