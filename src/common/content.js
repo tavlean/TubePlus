@@ -2,10 +2,13 @@
 // loads, so this script is usually a no-op there. It exists to cover in-app SPA
 // navigations (clicking a Mix while already on YouTube) and browsers without DNR.
 
-const { DEFAULT_SETTINGS, normalizeSettings, cleanYouTubeWatchURL } = window.TubePlusUrlCleaner;
+// Read from globalThis, not window: url-cleaner.js attaches the API to globalThis,
+// and in Firefox content scripts the sandbox global is not the same object as window.
+const { DEFAULT_SETTINGS, normalizeSettings, cleanYouTubeWatchURL } = globalThis.TubePlusUrlCleaner;
 
 let settings = Object.assign({}, DEFAULT_SETTINGS);
 let settingsLoaded = false;
+let lastSeenURL = window.location.href;
 
 function cleanCurrentURL() {
     const result = cleanYouTubeWatchURL(window.location.href, settings);
@@ -35,8 +38,28 @@ function loadSettings() {
     });
 }
 
+// SPA navigations never hit the network, so they must be caught in-page. Desktop
+// YouTube announces them with yt-navigate-finish on document; the mobile web app
+// (m.youtube.com) fires state-navigateend on window instead. popstate covers
+// back/forward traversals (it never fires for pushState).
 document.addEventListener("yt-navigate-finish", maybeClean);
+window.addEventListener("state-navigateend", maybeClean);
 window.addEventListener("popstate", maybeClean);
+
+// Navigation API (Chrome 102+, Firefox 147+): fires after every history commit,
+// independent of YouTube's own events.
+if (window.navigation && typeof window.navigation.addEventListener === "function") {
+    window.navigation.addEventListener("currententrychange", maybeClean);
+}
+
+// Fallback for engines without the Navigation API: YouTube mutates the DOM on every
+// navigation, so a cheap URL comparison on mutations catches missed changes.
+new MutationObserver(() => {
+    if (window.location.href !== lastSeenURL) {
+        lastSeenURL = window.location.href;
+        maybeClean();
+    }
+}).observe(document, { subtree: true, childList: true });
 
 chrome.storage.onChanged.addListener((changes, areaName) => {
     if (areaName !== "local") {
