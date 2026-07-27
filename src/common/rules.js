@@ -4,10 +4,18 @@
 
     const REMOVE_PARAMS = ["list", "index", "pp", "start_radio"];
 
-    // Matches a youtube /watch URL that carries a `list=` parameter (first or later).
-    const ANY_LIST = "/watch\\?(.*&)?list=";
+    // Matches a /watch URL carrying BOTH a video id and a `list=`, in either order.
+    //
+    // The `v=` requirement matters: `watch?list=PL…` with no video is a real link
+    // shape, and stripping its list leaves a bare `/watch` that YouTube serves as a
+    // dead page. url-cleaner.js has always refused those (it bails on a missing `v`);
+    // until 1.5.2 the DNR rule did not, so Chrome broke links Firefox left alone.
+    // RE2 powers regexFilter, so no lookahead is available - hence the two orderings
+    // spelled out. Covered by rules.test.js against a table of real URL shapes.
+    const ANY_LIST = "/watch\\?(.*&)?(v=[^&]+&(.*&)?list=|list=[^&]*&(.*&)?v=[^&]+)";
     // Same, but only when the list id is a Mix/radio (RD…) or auto list (UL…).
-    const MIX_LIST = "/watch\\?(.*&)?list=(RD|UL)";
+    const MIX_LIST =
+        "/watch\\?(.*&)?(v=[^&]+&(.*&)?list=(RD|UL)|list=(RD|UL)[^&]*&(.*&)?v=[^&]+)";
 
     function redirectRule(id, regexFilter, priority) {
         return {
