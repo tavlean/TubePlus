@@ -104,34 +104,6 @@ body.is-paused .status-dot {
     border-radius: var(--radius-lg);
 }
 
-/* Missing host access (Firefox) */
-.access-card {
-    gap: 10px;
-    border-color: color-mix(in srgb, var(--accent-start) 35%, var(--border));
-    background: color-mix(in srgb, var(--accent-start) 7%, var(--surface));
-}
-
-.access-text {
-    margin: 0;
-    font-size: 12.5px;
-    line-height: 1.45;
-}
-
-.access-button {
-    padding: 8px 12px;
-    border: 0;
-    border-radius: var(--radius-md);
-    background: var(--accent);
-    color: var(--on-accent);
-    font: 600 13px var(--font);
-    cursor: pointer;
-}
-
-.access-button:focus-visible {
-    outline: 2px solid var(--accent-start);
-    outline-offset: 2px;
-}
-
 /* Switch rows */
 .switch-row {
     display: flex;
