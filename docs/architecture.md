@@ -66,6 +66,36 @@ Excluded in **both** engines, and they must stay in step:
 `npm run test:smoke` asserts the DNR exclusion survives into the rules Chrome actually
 registers.
 
+## The two engines must agree
+
+DNR and the content script decide independently, so any disagreement means Chrome and
+Firefox behave differently on the same link. Two rules keep them honest:
+
+- **Both require a video id.** `url-cleaner.js` bails when `v` is missing or empty;
+  the DNR regex now spells out both parameter orderings to demand the same. Before
+  1.5.2 it did not, so Chrome stripped `watch?list=PL…` down to a bare `/watch` — a
+  dead page. `regexFilter` runs on RE2, so there is no lookahead to lean on.
+- **`rules.test.js` drives both over one table of URL shapes** and asserts they agree
+  case by case. Add any new URL shape there first.
+
+Known remaining divergence, deliberate: `start_radio` with no `list` is cleaned by the
+content script but not matched by DNR, so Chrome cleans it with a visible reload rather
+than before the request. YouTube normally emits `list=RD…&start_radio=1`, so this is
+rare; fixing it means widening the regex, which is a bigger risk than the symptom.
+
+## Loop guard (`content.js`)
+
+`location.replace` can be undone by a page that re-adds playlist context, and each
+reload is a fresh document, so nothing in memory can count iterations — the state lives
+in `sessionStorage`, which is per tab and survives navigation.
+
+The signal is **what the document started at**, not how many times we have cleaned. A
+loop means we cleaned to T, the document loaded at T, the page re-dirtied it, and we
+are asked for T again. Reopening the same Mix does not look like that: that document
+starts at the dirty URL. An earlier version counted attempts instead and refused a
+legitimate third visit to the same video — silently, which is the worst failure mode
+this extension has. The offline harness covers both sides.
+
 ## Settings → rules (`rules.js`)
 
 Settings: `{ enabled, cleanMixes, cleanPlaylists }`. Mix = list id `RD…`/`UL…`.

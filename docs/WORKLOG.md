@@ -94,6 +94,19 @@ and that the popup shows no missing-access warning. Run it before every upload.
 Note it needs `channel: "chromium"` — the bundled default headless never starts the
 extension service worker.
 
+**Two bugs the new harness caught that reading the code did not:**
+1. **The loop guard refused legitimate cleans.** Counting attempts per tab meant
+   opening the same Mix three times in quick succession silently stopped being
+   cleaned on the Firefox path. Rewritten to key on what the document started at.
+   This was introduced by this very session — the guard was added as insurance and
+   was itself the biggest new risk in the release.
+2. **`watch?list=PL…` with no video id was broken on Chrome since 1.5.0.** DNR
+   stripped the list and left a bare `/watch`, which YouTube serves as a dead page.
+   The content script had always refused those. Fixed by requiring `v=` in the regex.
+
+Both were invisible to inspection and to the previous tests. That is the argument for
+`npm run test:offline` existing at all.
+
 **Open risks, ranked — carry these into the next session:**
 1. `docs/privacy.md` lists `declarativeNetRequest` as a permission TubePlus uses.
    The Firefox build has only `storage`, and the privacy page is shared by both

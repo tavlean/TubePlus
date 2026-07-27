@@ -21,7 +21,7 @@ TubePlus is a cross-browser MV3 extension (Chrome + Firefox from one shared code
 - v1.5.2 fixed in repo 2026-07-27 (see docs/WORKLOG.md): removes the card, reverts both manifests to 1.5.0's exact permission surface (so `strict_min_version` returns to 109), stops cleaning from breaking YouTube Premium downloads, and adds a reload loop guard. **Not yet uploaded** — this is a hotfix and should go out fast; a manual Firefox smoke test (steps in WORKLOG) is the only gate.
 - Tests pass; build is `npm run build` → store zips in `dist/`.
 - Also fixed in 1.5.2: `music.youtube.com` had been in scope since 1.5.0 and was stripping album and station queues (measured). Now excluded in both engines.
-- Gates before upload: `npm test` (unit) and `npm run test:smoke` (offline Chromium check of the built extension — DNR rules actually accepted, popup clean). See WORKLOG "Open risks" for what is still outstanding.
+- Gates before upload, all offline: `npm test` (17 unit), `npm run test:smoke` (built extension in Chromium), `npm run test:offline` (45 checks — full matrix on a local youtube.com, both builds, desktop and mobile). See WORKLOG "Open risks" for what is still outstanding.
 
 ## Intentions & priorities
 
