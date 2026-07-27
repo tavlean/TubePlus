@@ -94,6 +94,14 @@ body.is-paused .status-dot {
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--paused) 20%, transparent);
 }
 
+/* The UA stylesheet's [hidden] { display: none } loses to any author display rule,
+   so `.card { display: grid }` silently defeated the hidden attribute on a card and
+   showed every user a "TubePlus can't see YouTube pages" message in 1.5.1. Keep this
+   above the rules that set display. */
+[hidden] {
+    display: none !important;
+}
+
 /* Card */
 .card {
     display: grid;
