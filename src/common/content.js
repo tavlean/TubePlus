@@ -9,8 +9,23 @@ const { DEFAULT_SETTINGS, normalizeSettings, cleanYouTubeWatchURL } = globalThis
 let settings = Object.assign({}, DEFAULT_SETTINGS);
 let settingsLoaded = false;
 let lastSeenURL = window.location.href;
+let previousPath = new URL(lastSeenURL).pathname;
+
+// Cleaning here costs a full document load, and a full document load needs the
+// network. Premium downloads play from local storage precisely when the network is
+// unavailable, so cleaning one would trade a working offline video for an error
+// page. A clean URL is never worth a broken video.
+const DOWNLOADS_PATH = "/feed/downloads";
+
+function isOfflinePlayback() {
+    return navigator.onLine === false || previousPath === DOWNLOADS_PATH;
+}
 
 function cleanCurrentURL() {
+    if (isOfflinePlayback()) {
+        return false;
+    }
+
     const result = cleanYouTubeWatchURL(window.location.href, settings);
 
     if (result.changed && window.location.href !== result.url) {
@@ -22,7 +37,16 @@ function cleanCurrentURL() {
     return false;
 }
 
+// Every navigation signal funnels through here so previousPath always describes the
+// page we came from, which is what tells us a watch page was opened from Downloads.
 function maybeClean() {
+    const currentURL = window.location.href;
+
+    if (currentURL !== lastSeenURL) {
+        previousPath = new URL(lastSeenURL).pathname;
+        lastSeenURL = currentURL;
+    }
+
     if (settingsLoaded) {
         cleanCurrentURL();
     }
@@ -56,7 +80,6 @@ if (window.navigation && typeof window.navigation.addEventListener === "function
 // navigation, so a cheap URL comparison on mutations catches missed changes.
 new MutationObserver(() => {
     if (window.location.href !== lastSeenURL) {
-        lastSeenURL = window.location.href;
         maybeClean();
     }
 }).observe(document, { subtree: true, childList: true });
