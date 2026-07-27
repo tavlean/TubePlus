@@ -13,6 +13,7 @@
         "build:firefox": "node scripts/build.js build firefox",
         "test": "node --test test/*.test.js",
         "test:smoke": "node test/e2e/chrome-offline.js",
+        "test:offline": "node test/e2e/offline.e2e.js",
         "test:e2e": "node test/e2e/chromium.e2e.js && node test/e2e/firefox.e2e.js",
         "test:e2e:chromium": "node test/e2e/chromium.e2e.js",
         "test:e2e:firefox": "node test/e2e/firefox.e2e.js"
