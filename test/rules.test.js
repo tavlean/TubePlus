@@ -40,3 +40,22 @@ test("playlists-only allows mixes (higher priority) and redirects the rest", () 
     assert.equal(redirect.condition.regexFilter, "/watch\\?(.*&)?list=");
     assert.ok(allow.priority > redirect.priority, "allow must outrank redirect");
 });
+
+test("every rule excludes YouTube Music", () => {
+    // requestDomains matches subdomains, so without this DNR would redirect
+    // music.youtube.com album and station loads too.
+    const settingsSets = [
+        { enabled: true, cleanMixes: true, cleanPlaylists: true },
+        { enabled: true, cleanMixes: true, cleanPlaylists: false },
+        { enabled: true, cleanMixes: false, cleanPlaylists: true }
+    ];
+
+    for (const settings of settingsSets) {
+        const rules = buildDynamicRules(settings);
+        assert.ok(rules.length > 0);
+
+        for (const rule of rules) {
+            assert.deepEqual(rule.condition.excludedRequestDomains, ["music.youtube.com"]);
+        }
+    }
+});

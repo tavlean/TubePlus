@@ -15,6 +15,34 @@ test("detects YouTube watch URLs", () => {
     assert.equal(isYouTubeWatchURL(new URL("https://example.com/watch?v=abc123")), false);
 });
 
+test("leaves YouTube Music alone", () => {
+    // There `list` is the album or station being played, so stripping it would leave
+    // a one-song queue. Shipped stripped from 1.5.0 until 1.5.2.
+    assert.equal(isYouTubeWatchURL(new URL("https://music.youtube.com/watch?v=abc")), false);
+
+    const settings = { enabled: true, cleanMixes: true, cleanPlaylists: true };
+
+    const album = cleanYouTubeWatchURL(
+        "https://music.youtube.com/watch?v=abc&list=OLAK5uy_kABC&index=3",
+        settings
+    );
+    assert.equal(album.changed, false);
+    assert.equal(album.url, "https://music.youtube.com/watch?v=abc&list=OLAK5uy_kABC&index=3");
+
+    // RDAMVM… starts with RD, so it was stripped even with playlists turned off.
+    const station = cleanYouTubeWatchURL("https://music.youtube.com/watch?v=abc&list=RDAMVMabc", {
+        enabled: true,
+        cleanMixes: true,
+        cleanPlaylists: false
+    });
+    assert.equal(station.changed, false);
+
+    // The ordinary site must still be cleaned.
+    const normal = cleanYouTubeWatchURL("https://www.youtube.com/watch?v=abc&list=RDabc", settings);
+    assert.equal(normal.changed, true);
+    assert.equal(normal.url, "https://www.youtube.com/watch?v=abc");
+});
+
 test("identifies mix/radio list ids", () => {
     assert.equal(isMixOrRadioList("RDabc123"), true);
     assert.equal(isMixOrRadioList("ULxyz"), true);

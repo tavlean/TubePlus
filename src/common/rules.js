@@ -24,7 +24,11 @@
             condition: {
                 regexFilter,
                 resourceTypes: ["main_frame"],
-                requestDomains: ["youtube.com"]
+                requestDomains: ["youtube.com"],
+                // requestDomains matches subdomains, which sweeps in YouTube Music.
+                // Its `list` is the album or station being played - see EXCLUDED_HOSTS
+                // in url-cleaner.js, which keeps the content-script path in step.
+                excludedRequestDomains: ["music.youtube.com"]
             }
         };
     }
@@ -37,7 +41,11 @@
             condition: {
                 regexFilter,
                 resourceTypes: ["main_frame"],
-                requestDomains: ["youtube.com"]
+                requestDomains: ["youtube.com"],
+                // requestDomains matches subdomains, which sweeps in YouTube Music.
+                // Its `list` is the album or station being played - see EXCLUDED_HOSTS
+                // in url-cleaner.js, which keeps the content-script path in step.
+                excludedRequestDomains: ["music.youtube.com"]
             }
         };
     }

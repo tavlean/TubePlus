@@ -2,6 +2,11 @@
     const PLAYLIST_PARAMS = ["list", "index", "pp", "start_radio"];
     const PRESERVED_EMPTY_PARAMS = new Set(["autoplay", "mute"]);
 
+    // music.youtube.com is a different product on the same domain. There `list` is the
+    // album or station you chose to listen to, so stripping it leaves a one-song queue
+    // - the opposite of what the user asked for. Out of scope.
+    const EXCLUDED_HOSTS = new Set(["music.youtube.com"]);
+
     const DEFAULT_SETTINGS = {
         enabled: true,
         cleanMixes: true,
@@ -35,6 +40,7 @@
         return (
             (url.protocol === "http:" || url.protocol === "https:") &&
             (url.hostname === "youtube.com" || url.hostname.endsWith(".youtube.com")) &&
+            !EXCLUDED_HOSTS.has(url.hostname) &&
             url.pathname === "/watch"
         );
     }
