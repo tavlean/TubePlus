@@ -23,34 +23,48 @@ function isOfflinePlayback() {
 
 // Any surface that re-adds playlist context after our reload would loop forever, and
 // each reload starts a fresh document, so an in-memory counter can never see it.
-// sessionStorage is per-tab and survives navigation, which is the exact scope of the
-// loop. A loop has a signature: we keep producing the same clean URL.
-const LOOP_KEY = "tubeplus.lastClean";
-const LOOP_LIMIT = 2;
-// A loop re-fires within a second or two. Revisiting the same video later in the
-// session is ordinary, so repeats only count inside this window.
-const LOOP_WINDOW_MS = 15000;
+// sessionStorage is per-tab and survives navigation, which is the exact scope.
+//
+// The signal is what the document STARTED at, not how often we have cleaned. A loop
+// looks like: we clean to T, the document loads at T, the page puts the playlist
+// context back, and we are asked for T again - so the document began at T. A user
+// simply opening the same Mix again does not look like that: their document begins at
+// the dirty URL. Counting attempts instead of loops is what made an earlier version of
+// this guard refuse a legitimate third visit to the same video.
+const LOOP_KEY = "tubeplus.loop";
+const LOOP_LIMIT = 3;
+const initialURL = window.location.href;
 
 function loopGuardAllows(targetURL) {
-    let state = null;
+    if (initialURL !== targetURL) {
+        // Not a loop: this document did not start at the URL we are producing. Clear
+        // any stale count so an earlier loop cannot penalise ordinary browsing.
+        try {
+            sessionStorage.removeItem(LOOP_KEY);
+        } catch (error) {
+            // Storage unavailable; nothing to clear.
+        }
+        return true;
+    }
+
+    let seen = 0;
 
     try {
-        state = JSON.parse(sessionStorage.getItem(LOOP_KEY) || "null");
+        const state = JSON.parse(sessionStorage.getItem(LOOP_KEY) || "null");
+        if (state && state.url === targetURL) {
+            seen = state.count;
+        }
     } catch (error) {
         // Storage unreadable: clean rather than stall, and skip the bookkeeping.
         return true;
     }
 
-    const now = Date.now();
-    const isRecentRepeat = state && state.url === targetURL && now - state.at < LOOP_WINDOW_MS;
-    const repeats = isRecentRepeat ? state.repeats + 1 : 1;
-
-    if (repeats > LOOP_LIMIT) {
+    if (seen + 1 >= LOOP_LIMIT) {
         return false;
     }
 
     try {
-        sessionStorage.setItem(LOOP_KEY, JSON.stringify({ url: targetURL, repeats, at: now }));
+        sessionStorage.setItem(LOOP_KEY, JSON.stringify({ url: targetURL, count: seen + 1 }));
     } catch (error) {
         // Storage unwritable; proceed without the guard rather than stop cleaning.
     }
@@ -58,14 +72,21 @@ function loopGuardAllows(targetURL) {
     return true;
 }
 
+// location.replace() does not stop this document: script keeps running until the new
+// response commits, so more navigation signals can arrive and ask us to clean the same
+// URL again. Without this flag one navigation would burn several of the loop guard's
+// attempts and could get a later, perfectly legitimate clean refused.
+let replacing = false;
+
 function cleanCurrentURL() {
-    if (isOfflinePlayback()) {
+    if (replacing || isOfflinePlayback()) {
         return false;
     }
 
     const result = cleanYouTubeWatchURL(window.location.href, settings);
 
     if (result.changed && window.location.href !== result.url && loopGuardAllows(result.url)) {
+        replacing = true;
         // replace(), not assign(), so the dirty URL never enters history.
         window.location.replace(result.url);
         return true;
