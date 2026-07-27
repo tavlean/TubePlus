@@ -6,10 +6,16 @@ const root = path.resolve(__dirname, "..");
 const dist = path.join(root, "dist");
 const targets = {
     chrome: {
-        manifest: path.join(root, "src", "chrome", "manifest.json")
+        manifest: path.join(root, "src", "chrome", "manifest.json"),
+        exclude: []
     },
     firefox: {
-        manifest: path.join(root, "src", "firefox", "manifest.json")
+        // Firefox has no declarativeNetRequest path and its manifest declares no
+        // background page, so these two are dead weight in the package. Shipping them
+        // also makes web-ext lint report a DNR API the build cannot use, which is a
+        // question an AMO reviewer does not need to ask.
+        manifest: path.join(root, "src", "firefox", "manifest.json"),
+        exclude: ["background.js", "rules.js"]
     }
 };
 
@@ -32,6 +38,10 @@ function prepareTarget(browser, mode) {
     copyDirectory(path.join(root, "shared-assets"), path.join(outputDir, "assets"));
     copyDirectory(path.join(root, "src", "common"), outputDir);
     fs.copyFileSync(target.manifest, path.join(outputDir, "manifest.json"));
+
+    for (const file of target.exclude) {
+        fs.rmSync(path.join(outputDir, file), { force: true });
+    }
 
     return outputDir;
 }
