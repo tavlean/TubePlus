@@ -21,6 +21,43 @@ function isOfflinePlayback() {
     return navigator.onLine === false || previousPath === DOWNLOADS_PATH;
 }
 
+// Any surface that re-adds playlist context after our reload would loop forever, and
+// each reload starts a fresh document, so an in-memory counter can never see it.
+// sessionStorage is per-tab and survives navigation, which is the exact scope of the
+// loop. A loop has a signature: we keep producing the same clean URL.
+const LOOP_KEY = "tubeplus.lastClean";
+const LOOP_LIMIT = 2;
+// A loop re-fires within a second or two. Revisiting the same video later in the
+// session is ordinary, so repeats only count inside this window.
+const LOOP_WINDOW_MS = 15000;
+
+function loopGuardAllows(targetURL) {
+    let state = null;
+
+    try {
+        state = JSON.parse(sessionStorage.getItem(LOOP_KEY) || "null");
+    } catch (error) {
+        // Storage unreadable: clean rather than stall, and skip the bookkeeping.
+        return true;
+    }
+
+    const now = Date.now();
+    const isRecentRepeat = state && state.url === targetURL && now - state.at < LOOP_WINDOW_MS;
+    const repeats = isRecentRepeat ? state.repeats + 1 : 1;
+
+    if (repeats > LOOP_LIMIT) {
+        return false;
+    }
+
+    try {
+        sessionStorage.setItem(LOOP_KEY, JSON.stringify({ url: targetURL, repeats, at: now }));
+    } catch (error) {
+        // Storage unwritable; proceed without the guard rather than stop cleaning.
+    }
+
+    return true;
+}
+
 function cleanCurrentURL() {
     if (isOfflinePlayback()) {
         return false;
@@ -28,7 +65,7 @@ function cleanCurrentURL() {
 
     const result = cleanYouTubeWatchURL(window.location.href, settings);
 
-    if (result.changed && window.location.href !== result.url) {
+    if (result.changed && window.location.href !== result.url && loopGuardAllows(result.url)) {
         // replace(), not assign(), so the dirty URL never enters history.
         window.location.replace(result.url);
         return true;
