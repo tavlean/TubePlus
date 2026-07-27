@@ -52,6 +52,20 @@ server never builds the queue.
 - **`url-cleaner.js`:** single source of truth for settings model + cleaning
   decision (unit-tested). `normalizeSettings` migrates legacy `{ mode }`.
 
+## Scope: youtube.com but NOT music.youtube.com
+
+`*://*.youtube.com/*` matches `music.youtube.com`, and DNR's `requestDomains` matches
+subdomains too, so YouTube Music was in scope from 1.5.0 to 1.5.2 by accident. There
+`list=OLAK5uy_…` is the album and `list=RDAMVM…` is the station the user chose —
+stripping it leaves a one-song queue, the opposite of the extension's purpose. The
+station ids start with `RD`, so the "Playlists" toggle did not spare them either.
+
+Excluded in **both** engines, and they must stay in step:
+`EXCLUDED_HOSTS` in `url-cleaner.js` (content-script path) and
+`excludedRequestDomains` in `rules.js` (DNR path). Both are covered by unit tests, and
+`npm run test:smoke` asserts the DNR exclusion survives into the rules Chrome actually
+registers.
+
 ## Settings → rules (`rules.js`)
 
 Settings: `{ enabled, cleanMixes, cleanPlaylists }`. Mix = list id `RD…`/`UL…`.
@@ -102,23 +116,37 @@ the Firefox build but unused. Upgrade only after verifying live — MDN document
 DNR + `queryTransform.removeParams` since Firefox 113, so this is likely viable,
 but it would NOT bypass the host-permission gate below (redirects need the grant).
 
-**Firefox MV3 host permissions are user-granted, not automatic** — but the store
-build is fine, and 1.5.1 misread this. Content scripts only run on granted origins,
-and from Firefox 127 the origins in **both `host_permissions` and
-`content_scripts.matches`** are shown in the install prompt and granted at install
-(Bugzilla 1889402). 1.5.0 requests `*://*.youtube.com/*` via `content_scripts.matches`,
-so every AMO install already holds the grant. The rule that bites is the other one:
-**an update is never granted a NEW origin** (Bugzilla 1893232). Since 1.5.2 requests
-exactly the origin 1.5.0 already requested, there is nothing new to grant and the
-update is seamless.
+**Firefox MV3 host permissions are user-granted, not automatic.** Content scripts
+only run on granted origins. The grant is handed out in exactly one place
+(`Extension.sys.mjs`, verified against the shipped Firefox 152.0.6 binary): a branch
+that requires `originControls && startupReason === "ADDON_INSTALL" &&
+installIncludesOrigins`, where the last reads `extensions.originControls.grantByDefault`
+(defaulted true in `greprefs.js` since Firefox 127, Bugzilla 1889402). It grants
+**every origin in the manifest** — `host_permissions`, `permissions`, and
+`content_scripts[].matches` alike. So the origin 1.5.0 requests through
+`content_scripts.matches` is granted to any fresh install on Firefox 127+, which is
+every install TubePlus has ever had on a current browser (first release 2025-09,
+long after 127).
 
-What that leaves is only the genuine edge cases — a user who revoked access from the
-extensions button, or a temporary add-on from about:debugging (no install prompt, so
-no grant). Those are not worth a permission-request UI in the popup: the card in
-1.5.1 fired on exactly those cases and told working installs they were broken. If a
-"you have revoked access" affordance is ever wanted again, gate it on **observed
+Three consequences worth keeping:
+
+- **`ADDON_INSTALL` only, never `ADDON_UPGRADE`.** Updates grant nothing — not just
+  new origins (Bugzilla 1893232) but nothing at all. Existing grants persist, so an
+  update is seamless as long as it requests no origin the install did not.
+- **Installs on Firefox 109–126 predate the grant branch** and can be silently blind.
+  That population is the only real case the 1.5.1 card was for — and 1.5.1's
+  `strict_min_version: 128` locked those exact users out of the fix. If it is ever
+  worth addressing, it needs a build they can still receive.
+- **Temporary add-ons grant only on a FIRST load.** Loading one over an already
+  installed copy of the same ID (the AMO build), or hitting Reload in
+  about:debugging, takes `BootstrapScope.update()` and reports ADDON_UPGRADE, so no
+  grant. This is what makes the card appear during a smoke test of a build that is
+  perfectly fine for real users.
+
+If a "you have revoked access" affordance is ever wanted again, gate it on **observed
 failure** (a youtube.com tab where the content script does not answer a ping), never
-on `permissions.contains`, and check what it does under a temporary add-on first.
+on `permissions.contains` — and load it as a first-time temporary add-on before
+believing what it shows.
 
 ## Next feature
 
