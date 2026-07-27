@@ -1,11 +1,13 @@
 # Changelog
 
-## 1.5.1 - 2026-07-16
+## 1.5.2 - 2026-07-27
 
 - Fixed in-app navigation cleaning on the mobile YouTube site (m.youtube.com): tapping a video that carries Mix or playlist context now cleans the URL again. The mobile app never fires the desktop navigation event that 1.5.0 relied on, so cleaning only worked when a link was opened in a new tab. Navigation is now detected through several independent signals (desktop and mobile YouTube events, the Navigation API, and a URL watcher fallback).
 - Fixed Firefox, where 1.5.0 cleaned nothing at all: a Firefox-specific scoping difference in content scripts (globalThis is not window there) crashed the cleaner before it could run.
-- The popup now detects when access to youtube.com is missing and offers a one-click "Grant access" button. Firefox treats site access as optional and never grants new site access during extension updates, so some Firefox users end up with the extension installed but inactive.
-- Firefox now requires version 128 or newer.
+- Fixed downloaded videos not playing. Cleaning a URL costs a page load, and a page load needs the network, so cleaning a video opened from Downloads replaced a video that plays offline with a page that cannot load. TubePlus now leaves those URLs alone.
+- Permissions are unchanged from 1.5.0, so the update installs silently and nothing needs to be granted or re-enabled.
+
+(1.5.1 was prepared but never published. It briefly added a "Grant access" prompt and raised the minimum Firefox version; both were withdrawn before release.)
 
 ## 1.5.0 - 2026-06-22
 

@@ -17,7 +17,8 @@ TubePlus is a cross-browser MV3 extension (Chrome + Firefox from one shared code
 ## Current state
 
 - v1.5.0 shipped 2026-06-22: rebuilt engine on DNR (Chrome), content-script fallback, granular popup controls, dropped `tabs` permission.
-- v1.5.1 fixed in repo 2026-07-16 (see docs/WORKLOG.md): the 1.5.0 regressions a user reported — mobile (m.youtube.com) SPA clicks never cleaned, Firefox entirely dead — are fixed and Chromium-verified via an automated harness. **Not yet released**; needs a manual Firefox smoke test (steps in WORKLOG) before uploading to the stores.
+- v1.5.1 was prepared 2026-07-16 but **never released**, and was withdrawn: its Firefox permission changes (`optional_host_permissions`, a "Grant access" popup card, `strict_min_version` 128) fixed a problem the store build does not have, while showing working installs a "TubePlus can't see YouTube pages" card with a dead button.
+- v1.5.2 fixed in repo 2026-07-27 (see docs/WORKLOG.md): keeps 1.5.1's real fixes (mobile SPA cleaning, the Firefox `globalThis` crash), reverts both manifests to 1.5.0's exact permission surface, and stops cleaning from breaking YouTube Premium downloads. **Not yet released**; needs a manual Firefox smoke test (steps in WORKLOG) before uploading to the stores.
 - Tests pass; build is `npm run build` → store zips in `dist/`.
 
 ## Intentions & priorities

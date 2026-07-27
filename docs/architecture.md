@@ -35,6 +35,13 @@ server never builds the queue.
   `popstate` (back/forward only; pushState never fires it), and a MutationObserver
   URL check as the engine-agnostic fallback. 1.5.0 shipped with only
   yt-navigate-finish + popstate, which broke all mobile in-app cleaning.
+- **The reload has a cost, and offline playback cannot pay it.** `location.replace`
+  turns a client-side SPA navigation into a network navigation. YouTube Premium
+  downloads play from local storage specifically when the network is unavailable, so
+  cleaning one swaps a working video for a failed load. `content.js` therefore skips
+  cleaning when `navigator.onLine` is false or the watch page was opened from
+  `/feed/downloads` (tracked via `previousPath`). DNR needs no equivalent guard: it
+  only rewrites `main_frame` requests, which are network navigations already.
 - **Content-script scoping gotcha:** in Firefox content scripts `globalThis` is a
   sandbox global distinct from `window` (in Chrome they are the same object). Any
   API shared between content-script files must be written AND read through
@@ -75,6 +82,17 @@ permission casually.
   one-time re-enable then.
 - Net change published → 1.5.0: `+storage`, `+declarativeNetRequestWithHostAccess`
   (both warning-free), `tabs` removed → seamless update, no re-enable.
+- **`optional_host_permissions` (Firefox) — tried in 1.5.1, withdrawn in 1.5.2.**
+  Declaring `*://*.youtube.com/*` in `host_permissions` + `optional_host_permissions`
+  and shipping a "Grant access" popup card was a fix for a problem the store build
+  does not have (see Cross-browser below). It cost a `strict_min_version` bump to
+  128, which strands every Firefox user below 128, and the card shows a scary
+  "TubePlus can't see YouTube pages" message in any profile where the origin is not
+  explicitly granted — including temporary add-ons loaded from about:debugging,
+  which is exactly how the build gets smoke-tested. **Both manifests are now
+  byte-identical to the shipped 1.5.0 except the version string. Keep them that
+  way; verify with `diff` against `git show bac3d08:src/<browser>/manifest.json`
+  before any release.**
 
 ## Cross-browser
 
@@ -84,16 +102,23 @@ the Firefox build but unused. Upgrade only after verifying live — MDN document
 DNR + `queryTransform.removeParams` since Firefox 113, so this is likely viable,
 but it would NOT bypass the host-permission gate below (redirects need the grant).
 
-**Firefox MV3 host permissions are user-granted, not automatic.** Content scripts
-only run on origins the user has granted. Fresh installs on Firefox 127+ grant the
-origins in the install prompt, but **updates never auto-grant newly requested
-origins** (Bugzilla 1893232) and users can revoke at any time — leaving the
-extension installed but silently blind to youtube.com. Mitigations (1.5.1): the
-origin is declared in both `host_permissions` and `optional_host_permissions`,
-and the popup checks `permissions.contains` and shows a "Grant access" card wired
-to `permissions.request` (requires a user gesture; Firefox 128+, hence
-`strict_min_version: 128.0`). On Chrome the grant is silent at install, so the
-card never appears.
+**Firefox MV3 host permissions are user-granted, not automatic** — but the store
+build is fine, and 1.5.1 misread this. Content scripts only run on granted origins,
+and from Firefox 127 the origins in **both `host_permissions` and
+`content_scripts.matches`** are shown in the install prompt and granted at install
+(Bugzilla 1889402). 1.5.0 requests `*://*.youtube.com/*` via `content_scripts.matches`,
+so every AMO install already holds the grant. The rule that bites is the other one:
+**an update is never granted a NEW origin** (Bugzilla 1893232). Since 1.5.2 requests
+exactly the origin 1.5.0 already requested, there is nothing new to grant and the
+update is seamless.
+
+What that leaves is only the genuine edge cases — a user who revoked access from the
+extensions button, or a temporary add-on from about:debugging (no install prompt, so
+no grant). Those are not worth a permission-request UI in the popup: the card in
+1.5.1 fired on exactly those cases and told working installs they were broken. If a
+"you have revoked access" affordance is ever wanted again, gate it on **observed
+failure** (a youtube.com tab where the content script does not answer a ping), never
+on `permissions.contains`, and check what it does under a temporary add-on first.
 
 ## Next feature
 

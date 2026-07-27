@@ -1,5 +1,54 @@
 # Worklog
 
+## 2026-07-27 — 1.5.2: withdraw the 1.5.1 permission change, fix offline downloads
+
+**What changed:** `src/firefox/manifest.json` (dropped `host_permissions` and
+`optional_host_permissions`, `strict_min_version` 128 → 109), popup (access card,
+Grant button, and all `chrome.permissions` code removed from `popup.html`/`.js`/`.css`),
+`content.js` (skip cleaning during offline/Downloads playback), version 1.5.2,
+`npm test` scoped to `test/*.test.js`, changelog + architecture updated.
+
+**Why:** Tav opened 1.5.1 and hit "TubePlus can't see YouTube pages yet" with a
+Grant access button that did nothing. Two separate faults:
+
+1. **The card was a false alarm and the button could not have fixed it.** 1.5.1's
+   whole permission story rested on the claim that Firefox users end up without the
+   youtube.com grant. From Firefox 127, origins in `content_scripts.matches` are
+   shown at install and granted at install (Bugzilla 1889402), and 1.5.0 already
+   requested exactly that origin — so AMO users had the grant all along, and 1.5.2
+   requesting the same origin means there is nothing new for the update to grant
+   (Bugzilla 1893232 is about *new* origins). The profiles where
+   `permissions.contains` returns false are revoked-by-hand installs and
+   **temporary add-ons loaded from about:debugging, which get no install prompt and
+   therefore no grant** — i.e. precisely the smoke-test path the previous session's
+   own worklog told the next person to use. The 1.5.1 change also raised
+   `strict_min_version` to 128, stranding every Firefox user below that.
+2. **Downloads were broken by design, not by accident.** `location.replace` turns a
+   client-side SPA navigation into a network navigation. Premium downloads play from
+   local storage exactly when the network is unavailable, so cleaning one replaced a
+   working offline video with a failed load. Reported by Tav, who blocks youtube.com
+   at DNS level: disabling the extension made every downloaded video play again.
+
+**The rule this session bought:** both manifests are now byte-identical to the
+shipped 1.5.0 except the version string. `diff` them against
+`git show bac3d08:src/<browser>/manifest.json` before any release — that check is
+worth more than any amount of reasoning about what a browser "should" grant.
+
+**Gotchas for future sessions:**
+- `npm test` was `node --test` with no path. Node's runner treats every `.js` under
+  a directory named `test/` as a test file, so the new `test/e2e/*.js` suites were
+  running as unit tests — launching real browsers against real youtube.com and
+  hanging. Now scoped explicitly.
+- Firefox could not be automated on this machine either: `geckodriver` fails with
+  "Failed to read marionette port", and launching `/Applications/Firefox.app` headless
+  by hand never initialises the profile (no `MarionetteActivePort`, port 2828 never
+  opens). Firefox verification is still manual.
+- The Downloads guard keys on `previousPath === "/feed/downloads"` plus
+  `navigator.onLine`. The `navigator.onLine` half is unconditionally correct; the
+  path half assumes the desktop Downloads feed lives at `/feed/downloads` and that
+  its watch links carry `list=`. **Unverified** — needs a real Premium account to
+  confirm the URL shape.
+
 ## 2026-07-16 — 1.5.1: fix the 1.5.0 regressions reported by a user
 
 **What changed:** `content.js` (SPA navigation detection rebuilt + `globalThis`
