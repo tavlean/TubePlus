@@ -1,5 +1,12 @@
 # Worklog
 
+## 2026-11-19: pnpm, dependency updates, project standard
+
+- Moved from npm to pnpm 12.21.0 (`packageManager` in package.json). No version drift from the npm lockfile; the strict tree found no undeclared dependencies. geckodriver's postinstall is allowlisted in `pnpm-workspace.yaml`.
+- Updated dev dependencies: playwright 1.61.1 to 1.65.1, selenium-webdriver 4.46.0 to 4.53.0, geckodriver 6.1.0 to 8.0.0. The extension itself has no runtime dependencies.
+- Adopted the project standard: lean AGENTS.md, CLAUDE.md imports it, docs/README.md index, brief and worklog moved under docs/project/, ledger, gotchas, design placeholder.
+- Gates: `pnpm test` passes (17), `pnpm run build` produces both builds and zips with the expected manifests. `test:smoke` and `test:offline` were NOT run: Playwright 1.65 needs Chromium build 1255, which is not installed locally (`pnpm exec playwright install chromium`, about 150 MB). Run them before the next upload.
+
 ## 2026-07-27 — 1.5.2: hotfix the live 1.5.1 incident
 
 **Status when this started: 1.5.1 was PUBLIC on the Chrome Web Store, shipped
