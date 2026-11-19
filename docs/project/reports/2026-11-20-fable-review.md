@@ -27,8 +27,8 @@ the content-script path, and a few places where the two engines can still disagr
 
 ## 2. Run the content script at `document_start` (S, biggest win for Firefox)
 
-- Evidence: `run_at: "document_end"` in `src/chrome/manifest.json:14` and
-  `src/firefox/manifest.json:10`; `content.js` reads only `location` and storage and
+- Evidence: `run_at: "document_end"` in `src/chrome/manifest.json:15` and
+  `src/firefox/manifest.json:11`; `content.js` reads only `location` and storage and
   observes `document`, none of which need the DOM.
 - Why: on Firefox the content script is the only engine. Waiting for the full HTML
   parse before `location.replace` means the Mix page is downloaded and often starts
@@ -127,7 +127,7 @@ the content-script path, and a few places where the two engines can still disagr
 - `docs/architecture.md:144-145` says `background.js` and `rules.js` are copied to the
   Firefox build; `scripts/build.js:18` excludes them. Line 143 says `queryTransform`
   is unverified and line 146 says MDN documents it; state one position.
-- `test/e2e/firefox.e2e.js:22-24` still refers to the removed popup card flow.
+- `test/e2e/firefox.e2e.js:21-23` still refers to the removed popup card flow.
 - `docs/privacy.md:23` lists the DNR permission, which the Firefox build does not
   request (already noted in the 2026-07-27 worklog entry; still open).
 - `docs/project/brief.md` quotes test counts and a 2026-07-16 "updated" date while
