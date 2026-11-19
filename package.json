@@ -26,9 +26,9 @@
     ],
     "license": "MIT",
     "devDependencies": {
-        "geckodriver": "^6.1.0",
-        "playwright": "^1.61.1",
-        "selenium-webdriver": "^4.46.0"
+        "geckodriver": "^8.0.0",
+        "playwright": "^1.65.1",
+        "selenium-webdriver": "^4.53.0"
     },
     "packageManager": "pnpm@12.21.0"
 }
