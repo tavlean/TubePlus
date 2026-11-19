@@ -6,12 +6,12 @@
   "aliases": [
     "TubePlus"
   ],
-  "purpose": "",
+  "purpose": "A Chrome and Firefox extension that strips Mix and playlist context from YouTube watch URLs so a video plays on its own.",
   "status": "started",
   "linear": {
     "project_id": "e116cad7-2434-4057-bfb7-6a449fec08b5",
     "url": "https://linear.app/artusion/project/tubeplus-83f806f528e9"
   },
   "github": "tavlean/TubePlus",
-  "updated": "2026-08-17"
+  "updated": "2026-11-19"
 }

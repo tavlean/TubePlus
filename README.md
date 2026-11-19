@@ -2,7 +2,7 @@
 
 A cross-browser extension that cleans YouTube watch URLs by removing playlist/mix context while keeping useful video parameters like timestamps. Supports Chrome and Firefox from a shared codebase.
 
-For how it works and the reasoning behind the key decisions, see [docs/architecture.md](docs/architecture.md).
+For how it works and why, start at [docs/README.md](docs/README.md).
 
 ## Features
 
