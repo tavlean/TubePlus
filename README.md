@@ -20,14 +20,14 @@ For how it works and the reasoning behind the key decisions, see [docs/architect
 #### Development (unpacked)
 
 1. Clone this repository
-2. Run `npm run dev:chrome`
+2. Run `pnpm run dev:chrome`
 3. Open `chrome://extensions/`
 4. Enable Developer mode
 5. Click Load unpacked and select `dist/chrome-dev`
 
 #### Production build
 
-1. Run `npm run build:chrome`
+1. Run `pnpm run build:chrome`
 2. Use `dist/tubeplus-chrome.zip`
 
 ### Firefox
@@ -35,33 +35,33 @@ For how it works and the reasoning behind the key decisions, see [docs/architect
 #### Development (temporary add-on)
 
 1. Clone this repository
-2. Run `npm run dev:firefox`
+2. Run `pnpm run dev:firefox`
 3. Open `about:debugging#/runtime/this-firefox`
 4. Click Load Temporary Add-on
 5. Select `dist/firefox-dev/manifest.json`
 
 #### Production build
 
-1. Run `npm run build:firefox`
+1. Run `pnpm run build:firefox`
 2. Use `dist/tubeplus-firefox.zip`
 
 ## Development
 
 ```bash
-npm install
+pnpm install
 
 # Prepare dev folders
-npm run dev
-npm run dev:chrome
-npm run dev:firefox
+pnpm run dev
+pnpm run dev:chrome
+pnpm run dev:firefox
 
 # Produce store zip files
-npm run build
-npm run build:chrome
-npm run build:firefox
+pnpm run build
+pnpm run build:chrome
+pnpm run build:firefox
 
 # Remove generated artifacts
-npm run clean
+pnpm run clean
 ```
 
 ## Project Structure

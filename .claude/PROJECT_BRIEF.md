@@ -6,7 +6,7 @@ TubePlus is a cross-browser MV3 extension (Chrome + Firefox from one shared code
 
 ## Architecture in brief
 
-- `src/common/url-cleaner.js` — single source of truth: settings model + URL-cleaning decision (unit-tested, `npm test`).
+- `src/common/url-cleaner.js` — single source of truth: settings model + URL-cleaning decision (unit-tested, `pnpm test`).
 - `src/common/rules.js` — builds declarativeNetRequest dynamic rules from settings (unit-tested).
 - `src/common/background.js` — Chrome-only service worker; syncs DNR rules on install/startup/settings change.
 - `src/common/content.js` — fallback cleaner: in-app SPA navigations + browsers without DNR (Firefox's ONLY path).
@@ -19,9 +19,9 @@ TubePlus is a cross-browser MV3 extension (Chrome + Firefox from one shared code
 - v1.5.0 shipped 2026-06-22: rebuilt engine on DNR (Chrome), content-script fallback, granular popup controls, dropped `tabs` permission.
 - v1.5.1 **shipped to the Chrome Web Store 2026-07-20 and caused a live incident**: a CSS cascade mistake (`.card { display: grid }` beats the UA's `[hidden] { display: none }`) showed every one of ~715 users a "TubePlus can't see YouTube pages yet" card with a dead Grant access button, while cleaning actually worked fine. Rating fell to 3.88 with bad reviews. **Never state release status from this brief — check the store dashboard.**
 - v1.5.2 fixed in repo 2026-07-27 (see docs/WORKLOG.md): removes the card, reverts both manifests to 1.5.0's exact permission surface (so `strict_min_version` returns to 109), stops cleaning from breaking YouTube Premium downloads, and adds a reload loop guard. **Not yet uploaded** — this is a hotfix and should go out fast; a manual Firefox smoke test (steps in WORKLOG) is the only gate.
-- Tests pass; build is `npm run build` → store zips in `dist/`.
+- Tests pass; build is `pnpm run build` → store zips in `dist/`.
 - Also fixed in 1.5.2: `music.youtube.com` had been in scope since 1.5.0 and was stripping album and station queues (measured). Now excluded in both engines.
-- Gates before upload, all offline: `npm test` (17 unit), `npm run test:smoke` (built extension in Chromium), `npm run test:offline` (45 checks — full matrix on a local youtube.com, both builds, desktop and mobile). See WORKLOG "Open risks" for what is still outstanding.
+- Gates before upload, all offline: `pnpm test` (17 unit), `pnpm run test:smoke` (built extension in Chromium), `pnpm run test:offline` (45 checks — full matrix on a local youtube.com, both builds, desktop and mobile). See WORKLOG "Open risks" for what is still outstanding.
 
 ## Intentions & priorities
 
@@ -46,4 +46,4 @@ TubePlus is a cross-browser MV3 extension (Chrome + Firefox from one shared code
 - `docs/architecture.md` — design + permission decisions (load-bearing; read before touching permissions).
 - `docs/changelog.md` — user-facing history; `docs/privacy.md` — store listing policy text.
 - `test/url-cleaner.test.js`, `test/rules.test.js` — node --test suites.
-- Store builds: `npm run build:chrome` / `build:firefox` → `dist/tubeplus-*.zip`.
+- Store builds: `pnpm run build:chrome` / `build:firefox` → `dist/tubeplus-*.zip`.

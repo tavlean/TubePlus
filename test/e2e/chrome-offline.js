@@ -7,7 +7,7 @@
 // every user saw it. The old assertion checked the `hidden` PROPERTY and passed.
 // Assert computed visibility, never the attribute.
 //
-// Needs Chromium with extension support: `npx playwright install chromium`.
+// Needs Chromium with extension support: `pnpm exec playwright install chromium`.
 
 const path = require("node:path");
 const os = require("node:os");

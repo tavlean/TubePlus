@@ -10,7 +10,7 @@
 // script) and once against the Firefox build, which has no background page at all and
 // therefore exercises the content-script-only path Firefox actually uses.
 //
-// Run: npm run test:offline
+// Run: pnpm run test:offline
 
 const path = require("node:path");
 const os = require("node:os");

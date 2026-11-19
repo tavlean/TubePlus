@@ -63,7 +63,7 @@ station ids start with `RD`, so the "Playlists" toggle did not spare them either
 Excluded in **both** engines, and they must stay in step:
 `EXCLUDED_HOSTS` in `url-cleaner.js` (content-script path) and
 `excludedRequestDomains` in `rules.js` (DNR path). Both are covered by unit tests, and
-`npm run test:smoke` asserts the DNR exclusion survives into the rules Chrome actually
+`pnpm run test:smoke` asserts the DNR exclusion survives into the rules Chrome actually
 registers.
 
 ## The two engines must agree

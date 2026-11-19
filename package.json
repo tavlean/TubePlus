@@ -29,5 +29,6 @@
         "geckodriver": "^6.1.0",
         "playwright": "^1.61.1",
         "selenium-webdriver": "^4.46.0"
-    }
+    },
+    "packageManager": "pnpm@12.21.0"
 }
